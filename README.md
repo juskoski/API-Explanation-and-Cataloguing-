@@ -18,9 +18,15 @@ $ source venv/bin/activate
 $ pip3 install -r requirements.txt
 ```
 3. Create a file named `.env` and copy the contents from (.env.example)[.env.example]. Replace the placeholder API key with your OpenAI API key.
+4. For this project, Wazuh is used as for testing
+```sh
+$ cd ..
+$ git clone git@github.com:wazuh/wazuh.git
+$ cd API-Explanation-and-Cataloguing-
+```
 4. Run the application:
 ```sh
-$ python3 main.py
+$ python3 main.py --project-path ../wazuh
 ```
 
 # Code style
