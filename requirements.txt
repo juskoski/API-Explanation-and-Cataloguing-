@@ -1,0 +1,4 @@
+argparse
+colorlog
+openai
+python-dotenv
