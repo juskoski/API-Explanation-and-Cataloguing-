@@ -6,7 +6,9 @@ This repository contains the assignment for API Explanation and Cataloguing for 
 This project utilizes a LLM, OpenAI's o1, to build API documentation from a project's repository.
 
 ## Setup
-Instructions assume Linux is used
+Instructions assume Linux is used.
+
+**Note!** This is developed ad-hoc for completing the assingment and thus only supports `.py` files. LLMs can hallucinate quite a bit, so restricting the filetype only to `.py` helps with correcting hallucinations.
 
 1. Create a new python virtual environment and start it:
 ```sh
