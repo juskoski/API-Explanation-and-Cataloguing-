@@ -3,10 +3,22 @@ import argparse
 import colorlog
 import logging
 import os
+from flask import Flask, send_file
+from flask_swagger_ui import get_swaggerui_blueprint
 from openai import OpenAI
 from dotenv import load_dotenv
 
 load_dotenv()
+app = Flask(__name__)
+
+# Endpoints for the API catalogue
+SWAGGER_URL = "/swagger"
+SWAGGER_FILE_FILEPATH = "api_documentation_swagger.yaml"
+API_URL = f"/static/{SWAGGER_FILE_FILEPATH}"
+
+# Endpoint configuration
+swagger_ui_blueprint = get_swaggerui_blueprint(SWAGGER_URL, API_URL)
+app.register_blueprint(swagger_ui_blueprint, url_prefix=SWAGGER_URL)
 
 # Load the OpenAI API key and initialize the client
 client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
@@ -29,31 +41,32 @@ Do not add any other explanation or other response text. Only include the .py py
 """
 
 PROMPT_GENERATE_DOCUMENTATION = """
-You are an AI documentation generator. Your task is to create detailed API documentation in Markdown format based on a given dictionary of filepaths and file contents.
+You are an AI-powered documentation generator. Your task is to generate a Swagger (OpenAPI 3.0.0) YAML specification based on a given dictionary of file paths and their contents.
+Requirements:
 
-The API consists of multiple endpoints, each defined in different files. For each endpoint, extract its purpose, request method (GET, POST, etc.), URL path, parameters (query, body, headers), expected responses, and any additional details.
+    - Extract API details from the given file contents, including:
+        - Endpoint Purpose: A brief description of what the endpoint does.
+        - Request Method: (e.g., GET, POST, PUT, DELETE).
+        - URL Path: The endpoint’s path.
+        - Parameters: Identify query parameters, request body, headers, and path variables.
+        - Responses: Define expected response codes (200, 400, 500, etc.) and their descriptions.
+        - Request/Response Examples: If available, include JSON examples for clarity.
+    - Ensure the documentation follows Swagger best practices and is structured properly.
+    - Keep the YAML output under 10,000 characters.
 
-Structure the documentation as follows:
+Instructions:
 
-    API Overview
-    Authentication (if applicable)
-    List of Endpoints
-        Endpoint Name
-        Method: (GET/POST/PUT/DELETE)
-        URL: /api/example
-        Description: What this endpoint does
-        Request Parameters: Query, Path, and Body parameters with types and descriptions
-        Response Format: Expected success and error responses with examples
-        Headers: Required headers, if any
-    Error Codes & Descriptions
-    Examples of API Usage
+    - Parse the given dictionary, where:
+        - Keys represent file paths.
+        - Values contain the code and comments that define API endpoints.
+    - Extract relevant API details and organize them in Swagger-compliant YAML format.
+    - Do not include any text that is not part of the YAML documentation.
+    - Ensure proper indentation and formatting to maintain readability.
 
-Ensure that the documentation is clear, concise, and follows best practices for API documentation. Use Markdown formatting, including code blocks for examples. Generate tables where necessary for parameters and responses.
+Do not include any backticks or other markdown formatting, the user is expecting the entire file to be in valid yaml syntax.
 
-Here is the dictionary of file paths and contents:
+Here are the file contents:
 <FILE CONTENTS>
-
-Generate the Markdown documentation based on this input. You must keep the documentation under 10000 characters.
 """
 
 # Logging configuration
@@ -188,6 +201,19 @@ def main() -> None:
     generated_api_documentation = generate_response(prompt, 10000)
     logging.info(generated_api_documentation)
 
+    # Save the response as a file
+    filename = "api_documentation_swagger.yaml"
+    with open(filename, "w") as file:
+        file.write(generated_api_documentation)
+
+    logging.info("Navigate to http://localhost:5000 for the API catalogue.")
+
+
+@app.route(API_URL)
+def swagger_yaml():
+    return send_file(SWAGGER_FILE_FILEPATH, mimetype="text/yaml")
+
 
 if __name__ == "__main__":
     main()
+    app.run(host="0.0.0.0", port=5000, debug=True)

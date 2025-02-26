@@ -2,3 +2,5 @@ argparse
 colorlog
 openai
 python-dotenv
+flask
+flask-swagger-ui

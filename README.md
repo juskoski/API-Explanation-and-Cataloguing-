@@ -31,6 +31,8 @@ $ cd API-Explanation-and-Cataloguing-
 $ python3 main.py --project-path ../wazuh
 ```
 
+The LLM will generate the API documentation in Openapi format, and once it has been saved, it will be hosted as a searchable catalogue on [http://localhost:5000/#/](http://localhost:5000/#/) via Swagger.
+
 # Code style
 The code style follows [PEP8](https://peps.python.org/pep-0008/) with the exception that lines can be up to 120 characters long.
 
