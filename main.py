@@ -69,6 +69,30 @@ Here are the file contents:
 <FILE CONTENTS>
 """
 
+PROMPT_GENERATE_NEW_ENDPOINT = """
+You are an AI assistant specializing in generating API endpoints for web applications. Given a project structure and a description of the desired functionality, your task is to generate a new API endpoint.
+
+### Requirements:
+- The generated code must follow best practices for API development.
+- Include proper request validation.
+- Implement appropriate HTTP methods (GET, POST, PUT, DELETE) based on the functionality.
+- Include clear comments explaining each part of the code.
+- If authentication or authorization is required, incorporate it accordingly.
+- Ensure error handling for invalid requests and unexpected failures.
+- Return responses in JSON format, following RESTful API principles.
+
+### Instructions:
+- Analyze the provided project structure to determine where the new endpoint should be placed.
+- Use the given functionality description to generate the correct API logic.
+- Ensure that the endpoint follows the conventions of the detected framework.
+- Only return the generated Python code, without additional explanation.
+
+**Inputs:**
+- Project structure: <PATHS>
+- Functionality description: <DESCRIPTION>
+- Project file contents: <FILE CONTENTS>
+"""
+
 # Logging configuration
 log_formatter = colorlog.ColoredFormatter(
     '%(asctime)s - %(log_color)s%(levelname)-8s%(reset)s - %(funcName)s - %(message)s',
@@ -207,6 +231,20 @@ def main() -> None:
         file.write(generated_api_documentation)
 
     logging.info("Navigate to http://localhost:5000 for the API catalogue.")
+
+    # Generate new endpoint based on user's request
+    new_endpoint_description = "I want to create a new endpoint which deletes user agents from all devices"
+    prompt = PROMPT_GENERATE_NEW_ENDPOINT.replace("<PATHS>", str(filepaths))
+
+    # Only consider half of the file contents, otherwise the OpenAPI token limit may be reached
+    file_contents_str = str(file_contents)
+    mid_index = len(file_contents_str) // 2
+    file_contents_first_half = file_contents_str[:mid_index]
+
+    prompt = prompt.replace("<FILE CONTENTS>", str(file_contents_first_half))
+    prompt = prompt.replace("<DESCRIPTION>", new_endpoint_description)
+    new_api_endpoint_code = generate_response(prompt, 10000)
+    logging.info(f"Code for new endpoint: {new_api_endpoint_code}")
 
 
 @app.route(API_URL)
