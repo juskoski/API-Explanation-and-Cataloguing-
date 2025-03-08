@@ -1,0 +1,156 @@
+openapi: 3.0.0
+info:
+  title: Wazuh API
+  description: API documentation for Wazuh
+  version: 1.0.0
+paths:
+  /api/v1/commands:
+    post:
+      summary: Add Commands
+      description: Add a command to the dictionary and call the corresponding subscribers callbacks.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Commands'
+      responses:
+        '200':
+          description: Commands processed successfully
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      operationId: addCommands
+
+  /api/v1/authentication:
+    post:
+      summary: Authenticate User
+      description: Authentication endpoint handler. Returns a JWT token.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/Credentials'
+      responses:
+        '200':
+          description: Successful Authentication
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenResponse'
+        '401':
+          description: Unauthorized
+        '403':
+          description: Forbidden
+      operationId: authenticateUser
+
+  /api/v1/stateful-events:
+    post:
+      summary: Post Stateful Events
+      description: Post new events to the batcher.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StatefulEvents'
+      responses:
+        '200':
+          description: Events posted successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  results:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/TaskResult'
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      operationId: sendStatefulEvents
+
+  /api/v1/stateless-events:
+    post:
+      summary: Send Stateless Events
+      description: Send new events to the engine.
+      parameters:
+        - in: header
+          name: Authorization
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Events sent successfully
+        '400':
+          description: Bad Request
+        '500':
+          description: Internal Server Error
+      operationId: sendStatelessEvents
+
+components:
+  schemas:
+    Commands:
+      type: object
+      properties:
+        commands:
+          type: array
+          items:
+            $ref: '#/components/schemas/Command'
+    Command:
+      type: object
+      properties:
+        target:
+          type: object
+          properties:
+            id:
+              type: string
+        # Additional properties can be defined here
+    Credentials:
+      type: object
+      properties:
+        uuid:
+          type: string
+        key:
+          type: string
+    TokenResponse:
+      type: object
+      properties:
+        token:
+          type: string
+    StatefulEvents:
+      type: object
+      properties:
+        agent_metadata:
+          $ref: '#/components/schemas/AgentMetadata'
+        headers:
+          type: array
+          items:
+            $ref: '#/components/schemas/Header'
+        data:
+          type: array
+          items:
+            type: string
+    AgentMetadata:
+      type: object
+      # Define properties for the AgentMetadata schema
+    Header:
+      type: object
+      # Define properties for the Header schema
+    TaskResult:
+      type: object
+      properties:
+        index:
+          type: string
+        id:
+          type: string
+        result:
+          type: string
+        status:
+          type: integer
+```
